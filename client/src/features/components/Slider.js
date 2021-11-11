@@ -11,18 +11,21 @@ const changeTrackValue = (event, slider, maxValue, maxX) => {
 
 
 
-const Slider = ({videoProgress, volume, paused, setVideoPlaying, setSliderUsing, downloadedData, onChange, disabled, value, min, max, tipFormatter}) => {
+const Slider = ({videoProgress, volume, paused, setVideoPlaying, setSliderUsing, buffered, onChange, disabled, value, min, max, tipFormatter}) => {
     const slider = useRef(null)
     const [tooltipValue, setTooltipValue] = useState(0)
     const [pointerPressed, setPressed] = useState(false)
     const [pointerOver, setOver] = useState(false)
     const [tooltipLeft, setTooltipLeft] = useState(0)
-    const [tooltip, setTooltip] = useState(false)
     if (!min) min = 0
     if (!max) max = 100
     if (!value && value !== 0) volume ? value = 50 : value = 0
     const maxValue = max - min
     const x = (value/maxValue)*100
+
+    const tooltip = pointerOver || pointerPressed
+
+    const bufX = (buffered/maxValue)*100
 
     const changeTooltipX = (event) => {
         let tooltipX = event.pageX
@@ -32,10 +35,8 @@ const Slider = ({videoProgress, volume, paused, setVideoPlaying, setSliderUsing,
         const maxLeft = sliderCltRect.left + sliderCltRect.width
         if (tooltipX < minLeft) tooltipX = minLeft
         if (tooltipX > maxLeft) tooltipX = maxLeft
-        if (tooltip) {
-            const tooltipValue = ((tooltipX - minLeft) / sliderCltRect.width) * maxValue + min
-            setTooltipValue(tooltipValue)
-        }
+        const tooltipValue = ((tooltipX - minLeft) / sliderCltRect.width) * maxValue + min
+        setTooltipValue(tooltipValue)
         return tooltipX
     }
     
@@ -48,10 +49,8 @@ const Slider = ({videoProgress, volume, paused, setVideoPlaying, setSliderUsing,
                     setSliderUsing(true)
                     const maxX = slider.current.offsetWidth                   
                     onChange(changeTrackValue(event, slider.current, maxValue, maxX))
-
-                    if (!tooltip) setTooltip(true)
                     changeTooltipX(event)
-
+                    setPressed(true)
 
                     const PointerMove = (event) => {
                         onChange(changeTrackValue(event, slider.current, maxValue, maxX))
@@ -62,23 +61,20 @@ const Slider = ({videoProgress, volume, paused, setVideoPlaying, setSliderUsing,
                     const PointerUp = () => {
                         if (!pointerOver) {
                             setSliderUsing(false)
-                            if (tooltip) {
-                                setTooltip(false)                                
-                            } 
                         }
                         setPressed(false)
                         if (!paused) setVideoPlaying(true)
                         window.removeEventListener('pointermove', PointerMove)
-                        slider.current.removeEventListener('pointerup', PointerUp)
+                        window.removeEventListener('pointerup', PointerUp)
                     }
 
                     window.addEventListener('pointermove', PointerMove)
-                    slider.current.addEventListener('pointerup', PointerUp)
+                    window.addEventListener('pointerup', PointerUp)
                 }}
                 onPointerOver={event => {
-                    if (!tooltip) setTooltip(true)
                     changeTooltipX(event)
                     setSliderUsing(true)
+                    setOver(true)
 
                     const PointerMove = (event) => {
                         setTooltipLeft(changeTooltipX(event))
@@ -86,9 +82,6 @@ const Slider = ({videoProgress, volume, paused, setVideoPlaying, setSliderUsing,
                     const PointerOut = () => {
                         if (!pointerPressed) {
                             setSliderUsing(false)
-                           if (tooltip) {
-                            setTooltip(false)
-                           }
                         }
                         setOver(false)
                         window.removeEventListener('pointermove', PointerMove)
@@ -103,7 +96,7 @@ const Slider = ({videoProgress, volume, paused, setVideoPlaying, setSliderUsing,
             <div className="slider__rail">
                 {tooltip && <div style={{left: `${tooltipLeft}px`, top: `${slider.current.getBoundingClientRect().top - 28}px`}} className="slider__tooltip">{tipFormatter ? tipFormatter(tooltipValue) : Math.floor(tooltipValue)}</div>}
                 <div style={{width: `${x}%`}} className="slider__track"/>
-                {videoProgress && <div className="slider__downloaded-data"/>}
+                {videoProgress && <div className="slider__downloaded-data" style={{width: bufX ? `${bufX}%` : 'unset'}}/>}
                 <div style={{left: `${x}%`}} className="slider__handle"/>
             </div>
         </div>

@@ -1,78 +1,52 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
-import UserAvatar from '../../assets/images/user-avatar.svg'
 import ResizableTextArea from './ResizableTextArea.js'
-import { useSelector } from 'react-redux'
-
-const Comment = ({comment}) => {
-    const [likePressed, setLikePressed] = useState(false)
-    const [dislikePressed, setDislikePressed] = useState(false)
-
-    const {id, self, text, author, liked, disliked, likes, dislikes} = comment
-
-    const commentAuthor = useSelector(state => state.accounts.entities[author])
-
-    const userAvatar = commentAuthor.avatar ? commentAuthor.avatar : UserAvatar
-    
+import { useDispatch, useSelector } from 'react-redux'
+import axios from 'axios'
+import { setVideo } from "../../app/slices/videosSlice.js"
+import Comment from "./Comment.js"
 
 
 
-    
-    return (
-    <div key={id} className="video__comments__comment">
-        <div className="video__comments__comment__comment-author-and-delete-comment">
-            <Link to={commentAuthor.self ? '/my-account' : `/account/${author}`} className="video__comments__comment__comment-author-and-delete-comment__author">
-                <img alt="comment author's avatar" src={userAvatar}/>
-                <div>{author}</div>
-            </Link>
-            {self && 
-            <button className="video__comments__comment__comment-author-and-delete-comment__delete">Delete</button>
-            }            
-        </div>
-        <p className="video__comments__comment__text">{text}</p>
-        <div className="video__comments__comment__like-and-dislike">
-            <div onClick={() => {
-                    setLikePressed(!likePressed)
-                    if (dislikePressed) setDislikePressed(false)
-                    }} className="video__comments__comment__like-and-dislike__item">
-                <div className={`video__comments__comment__like-and-dislike__item__like${liked ? '_pressed' : ''}`}/>
-                {likes}
-            </div>
-            <div onClick={() => {
-                    setDislikePressed(!dislikePressed)
-                    if (likePressed) setLikePressed(false)
-                }} className="video__comments__comment__like-and-dislike__item">
-                <div className={`video__comments__comment__like-and-dislike__item__dislike${disliked ? '_pressed' : ''}`}/>
-                {dislikes}
-            </div>
-        </div>
-    </div>
-)
-}
-
-const CommentsList = ({id}) => {
-    const comments = useSelector(state => state.videos.entities[id].comments)
-
-    let commentsEntities
-    if (comments.ids && comments.entities) {
-        commentsEntities = comments.ids.map(id => comments.entities[id])
-    } 
-
-
-
+const CommentsList = ({videoEntity}) => {
+    const dispatch = useDispatch()
+    const comments = videoEntity.comments
+    const [submitted, setSubmitted] = useState(false)
     const [commentText, setCommentText] = useState('')
     const disabled = commentText.trim() === ''
-
+    const token = localStorage.getItem('token')
+    const postComment = (text) => {
+        setSubmitted(true)
+        axios.post(`/add-comment/${videoEntity.id}`, {
+            text
+        }, {headers: {'Authorization': `Bearer ${token}`}})
+        .then(res => {
+            setSubmitted(false)
+            dispatch(setVideo({...videoEntity, comments: [...videoEntity.comments, res.data]}))
+        })
+    }
+    const currentUserId = useSelector(state => state.accounts.ids.find(id => state.accounts.entities[id].self))
     return (
         <div className="video__comments">
-            <div className="video__comments__leave-comment">                   
+            {
+                currentUserId && <div className="video__comments__leave-comment">                   
                 <ResizableTextArea placeholder="Type your comment" className="video__comments__leave-comment__textarea" value={commentText} onChange={e => setCommentText(e.target.value)}/>              
-                <button className={`video__comments__leave-comment__send${disabled ? '_disabled' : ''}`} disabled={disabled}>Leave comment</button>
+                <button className={`video__comments__leave-comment__send${submitted ? '_submitted' : disabled ? '_disabled' : ''}`} disabled={submitted || disabled}
+                onClick={() => {
+                    postComment(commentText)
+                    setCommentText('')
+                }}
+                >Leave comment</button>
             </div>
-            {commentsEntities ? commentsEntities.map(commentEntity => <Comment comment={commentEntity}/>) : null}
+            }
+            
+            {comments && comments.length > 0 && <>
+                    <h1 className="video__comments__title">Comments</h1>
+                    {comments.map((comment, index) => <Comment commentIndex={index} videoEntity={videoEntity} key={index} comment={comment}/>).reverse()}
+                </>
+             }
 
         </div>
-    )
+    ) 
 }
 
 export default CommentsList

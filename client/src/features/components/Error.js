@@ -1,6 +1,6 @@
 const Error = () => {
     return (
-        <div className="can`t-find">
+        <div className="error">
             Some error occured :(
         </div>
     )

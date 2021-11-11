@@ -1,8 +1,8 @@
 import VideoPlayer from './VideoPlayer.js'
 import VideoInformation from './VideoInformation.js'
-import { useParams } from 'react-router-dom'
+import { useParams, Redirect } from 'react-router-dom'
 import CommentsList from './CommentList.js'
-
+import { useSelector } from 'react-redux'
 
 
 
@@ -12,13 +12,22 @@ import CommentsList from './CommentList.js'
 
 const VideoPage = () => {
     const {id} = useParams()
+    const status = useSelector(state => state.videos.status)
+    const videoEntity = useSelector(state => state.videos.entities[id])
 
+    if (!videoEntity && status === 'succeeded') {
+        return <Redirect to="/"/>
+    }
+
+    if (!videoEntity) {
+        return null
+    }
 
     return (
         <div className="video">
-            <VideoPlayer id={id}/>
-            <VideoInformation id={id}/>
-            <CommentsList id={id}/>
+            <VideoPlayer src={videoEntity.source}/>
+            <VideoInformation videoEntity={videoEntity}/>
+            <CommentsList videoEntity={videoEntity}/>
         </div>
     )
 

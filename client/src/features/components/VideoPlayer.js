@@ -1,12 +1,23 @@
-import Video from '../../temporary-folder/SABATON - Steel Commanders (Official Lyric Video).mp4'
 import  Slider  from './Slider.js'
 import { useRef, useState, useEffect } from 'react'
-import { useSelector } from 'react-redux'
-
-const secondsToMinutes = s => {
+const secondsToHumanReableTime = s => {
     if (s === 0) return '00:00'
     let minutes = Math.floor(s/60)
     let lastSeconds = Math.floor(s-minutes*60)
+    if (minutes >= 60) {
+        let hours = Math.floor(minutes/60)
+        let lastMinutes = Math.floor(minutes-hours*60)
+        if (String(hours).length < 2) {
+            hours = `0${hours}`
+        }
+        if (String(lastMinutes).length < 2) {
+            lastMinutes = `0${lastMinutes}`
+        }
+        if (String(lastSeconds).length < 2) {
+            lastSeconds = `0${lastSeconds}`
+        }
+        return `${hours}:${lastMinutes}:${lastSeconds}`
+    }
     if (String(minutes).length < 2) {
         minutes = `0${minutes}`
     }
@@ -18,10 +29,8 @@ const secondsToMinutes = s => {
 
 
 
-const VideoPlayer = ({id}) => {
-    const videoSrc = useSelector(state => state.videos.entities[id].src) 
-
-
+const VideoPlayer = ({src}) => {
+    const videoSrc = src
     const video = useRef(null)
     const videoPlayer = useRef(null)
     const [sliderUsing, setSliderUsing] = useState(false)
@@ -32,6 +41,7 @@ const VideoPlayer = ({id}) => {
     const [paused, setPausePressed] = useState(true)
     const [fullScreen, setFullScreen] = useState(false)
     const [screenLocked, setScreenLocked] = useState(false)
+    const [buffered, setBuffered] = useState(0)
 
     if (video.current) {
         (videoPlaying && !paused) ? video.current.play() : video.current.pause()  
@@ -39,7 +49,6 @@ const VideoPlayer = ({id}) => {
   
     useEffect(() => {
         const handleFullscreenChange = () => {
-            console.log('handlefullscreenchange')
             setFullScreen(!fullScreen)
             if (window.screen.orientation.type.includes('portrait')) {
                 !screenLocked ? 
@@ -84,43 +93,50 @@ const VideoPlayer = ({id}) => {
     return (
         <div onPointerOver={() => {
             setShowControls(true)
-
-
             const visualiseControls = () => { 
                 setShowControls(true)           
             }
-
             const unsetEventListener = () => {
                 window.removeEventListener('pointermove', visualiseControls)
                 videoPlayer.current.removeEventListener('pointerout', unsetEventListener)
             }
-
             window.addEventListener('pointermove', visualiseControls)
             videoPlayer.current.addEventListener('pointerout', unsetEventListener)
         }}
         ref={videoPlayer} className={'video__videoplayer'}>
-            <video preload="metadata" onDurationChange={() => {
-                setDuration(video.current.duration)
+            <video onProgress={e => {
+                const vid = e.target
+                if (duration > 0) {
+                    for (let i = 0; i < vid.buffered.length; i++) {
+                        if (vid.buffered.start(vid.buffered.length - 1 - i) < vid.currentTime) {
+                            setBuffered(vid.buffered.end(vid.buffered.length - 1 - i))
+                            break
+                        }
+                   
+                }
+                }
             }}
-            onTimeUpdate={() => setProgress(video.current.currentTime)} loop={false} className={'video__videoplayer__file'} src={Video} ref={video}
+            src={`/videofile/${videoSrc}`} preload="metadata" onDurationChange={e => {
+                    setDuration(e.target.duration)
+                }}
+            onTimeUpdate={() => setProgress(video.current.currentTime)} loop={false} className={'video__videoplayer__file'} ref={video}
                 
             />
             <div style={{opacity: showControls ? 1 : 0, cursor: !fullScreen ? 'pointer' : showControls ? 'pointer' : 'none'}}
             onClick={(e) => { 
                     if (e.target.className !== 'video__videoplayer__controls') return
                     setShowControls(true)
-                    setVideoPlaying(false)
-                    setPausePressed(true)
-
                 }}
             className="video__videoplayer__controls">
                 <div className="video__videoplayer__controls__progress">
-                    <div className="video__videoplayer__controls__progress__currentTime">{video.current && secondsToMinutes(progress)}</div>
+                    <div className="video__videoplayer__controls__progress__currentTime">{video.current && secondsToHumanReableTime(progress)}</div>
                     <Slider 
+                        videoProgress
                         videoPlaying={videoPlaying}
+                        buffered={buffered}
                         className="video__videoplayer__controls__progress__slider"
                         max={video.current ? duration : 0}
-                        tipFormatter={secondsToMinutes}
+                        tipFormatter={secondsToHumanReableTime}
                         setVideoPlaying={setVideoPlaying}
                         value={progress}
                         video={video.current}
@@ -133,7 +149,7 @@ const VideoPlayer = ({id}) => {
                         }
                     }
                     />
-                    <div className="video__videoplayer__controls__progress__duration">{video.current && secondsToMinutes(duration)}</div>
+                    <div className="video__videoplayer__controls__progress__duration">{video.current && secondsToHumanReableTime(duration)}</div>
                 </div>
                 <div className="video__videoplayer__controls__other">
                     <div className="video__videoplayer__controls__other__wrapper">

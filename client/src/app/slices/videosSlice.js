@@ -1,139 +1,51 @@
-import {createSlice, createEntityAdapter} from '@reduxjs/toolkit'
+import {createSlice, createEntityAdapter, createAsyncThunk} from '@reduxjs/toolkit'
+import axios from 'axios'
 
 const videosAdapter = createEntityAdapter()
 
-const initialState = videosAdapter.getInitialState({
-    ids: ['a', 'b', 'c'],
-    entities: {
-        a: {
-            id: 'a',
-            src: 'a',
-            title: 'aboba',
-            description: '',
-            author: 'a',
-            liked: true,
-            disliked: false,
-            likes: 0,
-            dislikes: 3,
-            preview: null,
-            comments:{ 
-                ids: ['a', 'b'],
-                entities: {
-                a: {
-                    id: 'a',
-                    self: true,
-                    text: 'abf',
-                    author: 'a',
-                    liked: true,
-                    disliked: false,
-                    likes: 0,
-                    dislikes: 3
-                },
-                b: 
-                {
-                    id: 'b',
-                    self: false,
-                    text: 'abf',
-                    author: 'a',
-                    liked: false,
-                    disliked: true,
-                    likes: 0,
-                    dislikes: 3
-                },
-            }
-
-            }
-        },
-        b: {
-            id: 'b',
-            src: 'b',
-            title: 'silvesta',
-            description: 'fg',
-            author: 'b',
-            liked: false,
-            disliked: true,
-            likes: 0,
-            dislikes: 3,
-            preview: null,
-            comments:{ 
-                ids: ['a', 'b'],
-                entities: {
-                a: {
-                    id: 'a',
-                    self: true,
-                    text: 'abf',
-                    author: 'a',
-                    liked: true,
-                    disliked: false,
-                    likes: 0,
-                    dislikes: 3
-                },
-                b: 
-                {
-                    id: 'b',
-                    self: false,
-                    text: 'abf',
-                    author: 'a',
-                    liked: false,
-                    disliked: true,
-                    likes: 0,
-                    dislikes: 3
-                },
-            }
-
-            }
-        },
-        c: {
-            id: 'c',
-            src: 'c',
-            title: 'sonte',
-            description: 'fg',
-            author: 'c',
-            liked: false,
-            disliked: false,
-            likes: 0,
-            dislikes: 3,
-            preview: null,
-            comments:{ 
-                ids: ['a', 'b'],
-                entities: {
-                a: {
-                    id: 'a',
-                    self: true,
-                    text: 'abf',
-                    author: 'a',
-                    liked: true,
-                    disliked: false,
-                    likes: 0,
-                    dislikes: 3
-                },
-                b: 
-                {
-                    id: 'b',
-                    self: false,
-                    text: 'abf',
-                    author: 'a',
-                    liked: false,
-                    disliked: true,
-                    likes: 0,
-                    dislikes: 3
-                },
-            }
-            }
-        },
-    }
+export const fetchVideos = createAsyncThunk('fetchVideos', async () => {
+    const token = localStorage.getItem('token')
+    const response = await axios.get('/videos', {headers: {"Authorization": token ? `Bearer ${token}` : ''}})
+    return response.data
 })
 
+
+const initialState = videosAdapter.getInitialState({status: 'idle'})
 
 
 const videosSlice = createSlice({
     name: 'videos',
     initialState,
     reducers: {
-        addVideo: videosAdapter.addOne
+        setVideo: videosAdapter.setOne,
+        removeAccountsVideos: (state, action) => {
+            const accountId = action.payload.id
+            const accountsVideosIds = []
+            state.ids.forEach(videoId => {
+                if (state.entities[videoId].author === accountId) {
+                    accountsVideosIds.push(videoId)
+                }
+            })
+            videosAdapter.removeMany(state, accountsVideosIds)
+        },
+        removeVideo: videosAdapter.removeOne
+    },
+    extraReducers(builder) {
+        builder.addCase(fetchVideos.fulfilled, (state, action) => {
+            state.status = 'succeeded'
+            videosAdapter.setMany(state, action.payload)
+        })
+        .addCase(fetchVideos.pending, (state, action) => {
+            state.status = 'loading'
+        })
+        .addCase(fetchVideos.rejected, (state, action) => {
+            state.status = 'error'
+        })
     }
 })
 
+
 export default videosSlice.reducer
 
-export const {addVideo} = videosSlice
+export const { setVideo, removeAccountsVideos, removeVideo } = videosSlice.actions
+
