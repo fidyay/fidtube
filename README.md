@@ -16,7 +16,7 @@ Go to your account's page (you can do it on menu or on the video page by clickin
 ### Commenting and voting 
 You can vote the video, comment it and vote other comments
 
-## !You can't add videos, vote and comment if you aren't authorized
+## !!!You can't add videos, vote and comment if you aren't authorized
 
 ### Usage
 
