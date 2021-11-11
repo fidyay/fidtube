@@ -8,7 +8,7 @@ Open menu and click 'Create account' link, enter neccessary fields and send form
 Open menu and click 'Sign in' link, enter your login and password
 
 ### Deleting account and signing out
-Go yo menu and click the corresponding button
+Go to menu and click the corresponding button
 
 ### Adding video
 Go to your account's page (you can do it on menu or on the video page by clicking your nickname) and press 'Add video' link and set your video file and its title and also you can add other information
