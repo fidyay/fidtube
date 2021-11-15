@@ -596,8 +596,9 @@ app.delete('/video/:id', (req, res) => {
     
 })
 
-app.get('/', (req, res) => {
-  res.sendFile('./client/build/index.html')
+app.get('*', (req, res) => {
+  const htmlPath = path.join(__dirname, 'client/build/index.html')
+  res.sendFile(htmlPath)
 })
 
 app.listen(port, () => {

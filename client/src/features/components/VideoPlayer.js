@@ -91,7 +91,10 @@ const VideoPlayer = ({src}) => {
     }
 
     return (
-        <div onPointerOver={() => {
+        <div onClick={() => {
+            setShowControls(true)
+        }}
+        onPointerOver={() => {
             setShowControls(true)
             const visualiseControls = () => { 
                 setShowControls(true)           

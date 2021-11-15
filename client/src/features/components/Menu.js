@@ -11,9 +11,10 @@ import { removeAccountsVideos } from '../../app/slices/videosSlice.js'
 
 const Subscription = ({account}) => {
     const {id, name, avatar} = account
+    const avatarSrc = avatar ? `/avatar/${avatar}` : UserAvatar
     return (
         <Link to={`/account/${id}`} className="menu__user-info">
-                <img src={avatar ? `avatar/${avatar}` : UserAvatar} alt="User avatar"/>
+                <div className="subscribtion__avatar" style={{background: `url(${avatarSrc})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat'}}/>
                 <div>{name}</div>
         </Link>
     )

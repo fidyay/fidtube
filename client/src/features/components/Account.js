@@ -6,6 +6,7 @@ import { subscribe, unsubscribe } from '../../app/slices/accountsSlice.js'
 
 const UserPage = ({id, name, description, avatar, subscribed, self}) => {
     const userAvatar = avatar ? `/avatar/${avatar}` : UserAvatar
+    const authorized = useSelector(state => state.accounts.ids.find(id => state.accounts.entities[id].self))
     const dispatch = useDispatch()
     const buttonText = self ? 'Add video' : subscribed ? 'Subscribed' : 'Subscribe'
     const buttonClass = (subscribed) ? 'account__avatar-and-subscribe__subscribed' : 'account__avatar-and-subscribe__subscribe'
@@ -18,7 +19,7 @@ const UserPage = ({id, name, description, avatar, subscribed, self}) => {
                 backgroundSize: 'cover',
                 backgroundPosition: 'center'
             }}/>
-                {self ? 
+                {!authorized ? null : self ? 
                 <Link to="/add-video" className="account__avatar-and-subscribe__add-video">
                     {buttonText}
                 </Link> :

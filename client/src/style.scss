@@ -367,11 +367,10 @@ body {
                 border-bottom: none;
             }
 
-            img {
+            .subscribtion__avatar {
                 border-radius: 50%;
                 width: 20px;
                 height: 20px;
-                display: block;
             }
 
             div {
@@ -500,6 +499,7 @@ body {
     align-items: center;
     overflow: hidden;
     padding: 10px 20px;
+    overflow: visible;
 
     @media screen and (max-width: 582px) {
         flex-direction: column;
@@ -512,6 +512,7 @@ body {
         flex-direction: column;
         align-items: center;
         margin-right: 10px;
+        overflow: visible;
 
         &__avatar {
             width: 70px;
@@ -939,6 +940,7 @@ body {
             align-items: center;
             flex-direction: column;
             padding: 10px;
+            overflow: visible;
             
 
 
