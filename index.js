@@ -50,7 +50,14 @@ const sendAccounts = (currentUserName, docs, token) => {
     return subscribtion.toString()
   })
   const formattedDocs = docs.map(doc => {
-    const { name, avatar, description, _id: id } = doc
+    let { name, avatar, description, _id: id } = doc
+    if (avatar && !fs.existsSync(path.join(__dirname, 'uploads/avatars', avatar))) {
+      avatar = null
+      UserModel.findOne({name}).then(doc => {
+        doc.avatar = null
+        doc.save()
+      })
+    }
     if (name === currentUserName) {
       if (token) {
         return { name, avatar, description, id, self: true, subscribed: false, token }
@@ -212,7 +219,7 @@ app.get('/videos', (req, res) => {
   VideoModel.find().then(docs => {
         if (token) {
             const handledDocs = docs.map(doc => {
-              const { _id: id,
+              let { _id: id,
                 title,
                 description,
                 likes,
@@ -222,6 +229,15 @@ app.get('/videos', (req, res) => {
                 preview,
                 comments,
                 votedBy } = doc
+                if (!fs.existsSync(path.join(__dirname, 'uploads/videos', source))) {
+                  VideoModel.findByIdAndDelete(id)
+                  return
+                }
+                if (preview && !fs.existsSync(path.join(__dirname, 'uploads/previews', preview))) {
+                  doc.preview = null
+                  preview = null
+                  doc.save()
+                }
                 let liked = false, disliked = false
                 const votedByUser = votedBy.find(vote => vote.voter === accountInfo.name)
                 if (votedByUser) {
@@ -239,14 +255,13 @@ app.get('/videos', (req, res) => {
                   }
                   return { text, author, likes, dislikes, self, liked, disliked }
                 })
-
                 return { id, title, description, likes, dislikes, author, source, preview, liked, disliked, comments: handledComments }
             })
-            res.send(handledDocs)
+            res.send([...handledDocs.filter(doc => !!doc)])
           return
         }
-        res.send(docs.map(doc => {
-          const { _id: id,
+        res.send([...docs.map(doc => {
+          let { _id: id,
             title,
             description,
             likes,
@@ -255,13 +270,22 @@ app.get('/videos', (req, res) => {
             source,
             preview,
             comments } = doc
+            if (!fs.existsSync(path.join(__dirname, 'uploads/videos', source))) {
+              VideoModel.findByIdAndDelete(id)
+              return
+            }
+            if (preview && !fs.existsSync(path.join(__dirname, 'uploads/previews', preview))) {
+              doc.preview = null
+              preview = null
+              doc.save()
+            }
             const handledComments = comments.map(comment => {
               const { text, author, likes,  dislikes } = comment
               return { text, author, likes, dislikes, self: false }
             })
 
             return { id, title, description, likes, dislikes, author, source, preview, comments: handledComments }
-        })) 
+        }).filter(doc => !!doc)]) 
   }).catch(e => console.log(e))
 })
 
