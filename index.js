@@ -626,6 +626,12 @@ app.get('*', (req, res) => {
 })
 
 app.listen(port, () => {
-  mongoose.connect(process.env.ATLAS_URI, { useUnifiedTopology: true, useNewUrlParser: true }).catch(err => console.log(err));
+  mongoose
+    .connect(process.env.ATLAS_URI, {
+      useUnifiedTopology: true,
+      useNewUrlParser: true,
+    })
+    .then(console.log)
+    .catch((err) => console.log(err));
   console.log(`Server is running on port: ${port}`);
 })
