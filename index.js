@@ -631,7 +631,6 @@ app.listen(port, () => {
       useUnifiedTopology: true,
       useNewUrlParser: true,
     })
-    .then(console.log)
     .catch((err) => console.log(err));
   console.log(`Server is running on port: ${port}`);
 })
