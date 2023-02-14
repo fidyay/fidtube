@@ -20,8 +20,6 @@ const getToken = (BearerToken) => {
   return BearerToken.length > 0 ? BearerToken.slice(7) : false;
 };
 
-console.log(process.env.JWT_PRIVATE_KEY);
-
 const videoOrPreviewStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     const setFile = (path) => {
