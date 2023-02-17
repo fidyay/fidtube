@@ -107,7 +107,7 @@ app.get("/is-login-unique/:name", async (req, res) => {
 
 app.get("/accounts", (req, res) => {
   const BearerToken = req.headers.authorization;
-  let token = getToken(BearerToken);
+  let token;
   let accountInfo;
   if (BearerToken) {
     token = getToken(BearerToken);
@@ -276,7 +276,7 @@ app.post(
 
 app.get("/videos", (req, res) => {
   const BearerToken = req.headers.authorization;
-  let token = getToken(BearerToken);
+  let token;
   let accountInfo;
   if (BearerToken) {
     token = getToken(BearerToken);
