@@ -107,9 +107,10 @@ app.get("/is-login-unique/:name", async (req, res) => {
 
 app.get("/accounts", (req, res) => {
   const BearerToken = req.headers.authorization;
-  const token = getToken(BearerToken);
+  let token = getToken(BearerToken);
   let accountInfo;
-  if (token) {
+  if (BearerToken) {
+    token = getToken(BearerToken);
     accountInfo = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
   }
   UserModel.find()
@@ -275,9 +276,10 @@ app.post(
 
 app.get("/videos", (req, res) => {
   const BearerToken = req.headers.authorization;
-  const token = getToken(BearerToken);
+  let token = getToken(BearerToken);
   let accountInfo;
-  if (token) {
+  if (BearerToken) {
+    token = getToken(BearerToken);
     accountInfo = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
   }
   VideoModel.find()
